@@ -1,4 +1,3 @@
-// utils/create-database.js
 // require the promise version of mysql2
 const mysql = require('mysql2/promise');
 
@@ -34,17 +33,18 @@ const setUpDatabase = async () => {
     // create the database if it doesn't already exist
     await db.query(`CREATE DATABASE IF NOT EXISTS ${DB_NAME}`);
     await db.query(`USE ${DB_NAME}`);
-    await db.query(`CREATE TABLE IF NOT EXISTS Artist (
+    await db.query(`CREATE TABLE IF NOT EXISTS Reader (
       id INT PRIMARY KEY auto_increment,
       name VARCHAR(50),
-      genre VARCHAR(25)
+      email VARCHAR(50),
+      password VARCHAR(50)
     )`);
-    await db.query(`CREATE TABLE IF NOT EXISTS Album (
+    await db.query(`CREATE TABLE IF NOT EXISTS Book (
       id INT PRIMARY KEY auto_increment,
-      name VARCHAR(50),
-      year INT,
-      artistId INT,
-      FOREIGN KEY (artistId) REFERENCES Artist(id)
+      title VARCHAR(50),
+      author VARCHAR(50),
+      genre VARCHAR(50),
+      ISBN VARCHAR(50)
     )`);
     
     db.end();

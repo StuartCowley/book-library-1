@@ -1,14 +1,15 @@
 const express = require('express');
 
+const readerRouter = require('./routes/readers');
+
+const bookRouter = require('./routes/books')
+
 const app = express();
 
-const readersController = require('./controllers/readers')
+app.use(express.json());
 
-app.get('/', (req, res) => {
-    res.status(200).json({ message: "Hello World" });
-});
+app.use('/readers', readerRouter);
 
-app.post('/readers', readersController.create)
+app.use('/books', bookRouter)
 
-
-module.exports = app
+module.exports = app;
