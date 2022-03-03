@@ -28,6 +28,34 @@ describe('/books', () => {
                 expect(newBookRecord.title).to.equal('Guide to Backend');
                 expect(newBookRecord.author).to.equal('Dan Hembery');
             });
+
+            it('checks to see if the title exists', async () => {
+                const response = await request(app).post('/books').send({
+                    title: 'Fake Title',
+                    author: 'Dan Hembery',
+                    genre: 'Fiction',
+                    ISBN: '123456'
+                })
+                const newBookRecord = await Book.findByPk(response.body.id);
+
+                expect(response.status).to.equal(400);
+                expect(response.body).to.haveOwnProperty('errors');
+                expect(newBookRecord).to.equal(null);
+            });
+
+            it('checks to see if the author exists', async () => {
+                const response = await request(app).post('/books').send({
+                    title: 'Guide to Backend',
+                    author: 'fake author',
+                    genre: 'Fiction',
+                    ISBN: '123456'
+                })
+                const newBookRecord = await Book.findByPk(response.body.id);
+
+                expect(response.status).to.equal(400);
+                expect(response.body).to.haveOwnProperty('errors');
+                expect(newBookRecord).to.equal(null);
+            });
         });
     });
 
@@ -37,9 +65,9 @@ describe('/books', () => {
         beforeEach(async () => {
           books = await Promise.all([
             Book.create({
-               title: 'Guide to Backend',
-               author: 'Dan Hembery',
-               genre: 'Fiction',
+               title: 'Full of Toblerone',
+               author: 'Disc0des',
+               genre: 'Cocoa based Horror',
                ISBN: '123456'
             }),
 
@@ -112,7 +140,7 @@ describe('/books', () => {
         it('returns a 404 if the book does not exist', async () => {
             const response = await request(app)
             .patch('/books/12345')
-            .send({ author: 'New Author' });
+            .send({ author: 'Disc0des' });
     
             expect(response.status).to.equal(404);
             expect(response.body.error).to.equal('The book could not be found.');
@@ -139,5 +167,3 @@ describe('/books', () => {
         });
     });
 });
-
-

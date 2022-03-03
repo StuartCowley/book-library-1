@@ -7,8 +7,8 @@ const createReader = async (req, res) => {
         res.status(201).json(newReader);
     } 
     catch (err) {
-        console.error(err);
-        res.status(500);
+        const errorMessages = err.errors.map((e) => e.message);
+        res.status(400).json({ errors: errorMessages });
     };
 };
 

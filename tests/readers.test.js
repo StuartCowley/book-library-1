@@ -23,9 +23,45 @@ describe('/readers', () => {
                 })
                 expect(response.status).to.equal(201);
                 expect(response.body.name).to.equal('Elizabeth Bennet');
+                expect(response.body.email).to.equal('future_ms_darcy@gmail.com')
                 expect(newReaderRecord.name).to.equal('Elizabeth Bennet');
                 expect(newReaderRecord.email).to.equal('future_ms_darcy@gmail.com');
             });
+
+            it('errors if any field is null', async () => {
+                const response = await request(app).post('/readers').send({});
+                const newReaderRecord = await Reader.findByPk(response.body.id);
+
+                expect(response.status).to.equal(400);
+                expect(response.body).to.haveOwnProperty('errors');
+                expect(newReaderRecord).to.equal(null);
+            })
+
+            it('errors if email is not in the correct format', async () => {
+                const response = await request(app).post('/readers').send({
+                    name: 'Elizabeth Bennet',
+                    email: 'Kapow.. this is a virus!',
+                    password: 'youll never guess it'                
+                })
+                const newReaderRecord = await Reader.findByPk(response.body.id);
+
+                expect(response.status).to.equal(400);
+                expect(response.body).to.haveOwnProperty('errors');
+                expect(newReaderRecord).to.equal(null);
+            })
+
+            it('errors if password is less than 8 characters long', async () => {
+                const response = await request(app).post('/readers').send({
+                    name: 'Elizabeth Bennet',
+                    email: 'future_ms_darcy@gmail.com',
+                    password: 'oops' 
+                })
+                const newReaderRecord = await Reader.findByPk(response.body.id);
+                
+                expect(response.status).to.equal(400);
+                expect(response.body).to.haveOwnProperty('errors');
+                expect(newReaderRecord).to.equal(null);                
+            })
         });
     });
 
@@ -49,7 +85,7 @@ describe('/readers', () => {
             Reader.create({ 
                 name: 'Lyra Belacqua', 
                 email: 'darknorth123@msn.org', 
-                password: 'enigma' }),
+                password: 'no short passwords' }),
         ]);
     });
     
