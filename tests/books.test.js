@@ -1,13 +1,21 @@
 const { expect } = require('chai');
-const { Book } = require('../src/models');
+const { Book, Genre, Author } = require('../src/models');
 const request = require('supertest');
 const app = require('../src/app');
 
 describe('/books', () => {
+    let dummyGenre;
+    let dummyAuthor;
+
     before(async () => Book.sequelize.sync());
 
     beforeEach(async () => {
-        await Book.destroy({ where: {} })
+        await Book.destroy({ where: {} });
+        await Genre.destroy({ where: {} });
+        await Author.destroy({ where: {} });
+        dummyGenre = await Genre.create({ genre: 'Fiction' });
+        dummyAuthor = await Author.create({ author: 'Dan Hembery' });
+
     })
 
     describe('with no records in the database', () => {
@@ -15,8 +23,8 @@ describe('/books', () => {
             it('creates a new book in the database', async () => {
                 const response = await request(app).post('/books').send({
                     title: 'Guide to Backend',
-                    author: 'Dan Hembery',
-                    genre: 'Fiction',
+                    author: dummyAuthor.id,
+                    genre: dummyGenre.id,
                     ISBN: '123456'
                 });
                 const newBookRecord = await Book.findByPk(response.body.id, {
@@ -24,30 +32,14 @@ describe('/books', () => {
                 })
                 expect(response.status).to.equal(201);
                 expect(response.body.title).to.equal('Guide to Backend');
-                expect(response.body.author).to.equal('Dan Hembery');
                 expect(newBookRecord.title).to.equal('Guide to Backend');
-                expect(newBookRecord.author).to.equal('Dan Hembery');
             });
 
             it('checks to see if the title exists', async () => {
                 const response = await request(app).post('/books').send({
-                    title: 'Fake Title',
-                    author: 'Dan Hembery',
-                    genre: 'Fiction',
-                    ISBN: '123456'
-                })
-                const newBookRecord = await Book.findByPk(response.body.id);
-
-                expect(response.status).to.equal(400);
-                expect(response.body).to.haveOwnProperty('errors');
-                expect(newBookRecord).to.equal(null);
-            });
-
-            it('checks to see if the author exists', async () => {
-                const response = await request(app).post('/books').send({
-                    title: 'Guide to Backend',
-                    author: 'fake author',
-                    genre: 'Fiction',
+                    title: '',
+                    author: dummyAuthor,
+                    genre: dummyGenre,
                     ISBN: '123456'
                 })
                 const newBookRecord = await Book.findByPk(response.body.id);
@@ -61,31 +53,58 @@ describe('/books', () => {
 
     describe('with records in the database', () => {    
         let books;
+
     
         beforeEach(async () => {
-          books = await Promise.all([
-            Book.create({
-               title: 'Full of Toblerone',
-               author: 'Disc0des',
-               genre: 'Cocoa based Horror',
-               ISBN: '123456'
-            }),
+            await Book.destroy({ where: {} });
 
-            Book.create({ 
-               title: 'Big Book of Cats',
-               author: 'Nyancat',
-               genre: 'Feline Fantasy',
-               ISBN: '789' 
-            }),
+            const authorOne = Author.create({
+                author: 'Dan Hembery'
+            });
+    
+            const authorTwo = Author.create({
+                author: 'Nyan Cat'
+            });
+    
+            const authorThree = Author.create({
+                author: 'Manchester Codes'
+            });
+    
+            const genreOne = Genre.create({
+                genre: 'Fiction'
+            });
+    
+            const genreTwo = Genre.create({
+                genre: 'Feline Fantasy'
+            });
+    
+            const genreThree = Genre.create({
+                genre: 'Non Fiction'
+            });    
 
-            Book.create({ 
-               title: 'REST Principles',
-               author: 'Manchester Codes',
-               genre: 'Non Fiction',
-               ISBN: '112233'
-            })
-        ]);
-    });
+            books = await Promise.all([
+                Book.create({
+                    title: 'Full of Toblerone',
+                    author: authorOne.id,
+                    genre: genreOne.id,
+                    ISBN: '123456'
+                }),
+
+                Book.create({ 
+                    title: 'Big Book of Cats',
+                    author: authorTwo.id,
+                    genre: genreTwo.id,
+                    ISBN: '789' 
+                }),
+
+                Book.create({ 
+                    title: 'REST Principles',
+                    author: authorThree.id,
+                    genre: genreThree.id,
+                    ISBN: '112233'
+                })
+            ]);
+        });
     
     describe('GET /books', () => {
         it('gets all books records', async () => {
@@ -98,8 +117,7 @@ describe('/books', () => {
                 const expected = books.find((a) => a.id === book.id);
     
                 expect(book.title).to.equal(expected.title);
-                expect(book.author).to.equal(expected.author);
-                expect(book.genre).to.equal(expected.genre);
+                expect(book.ISBN).to.equal(expected.ISBN);
             });
         });
     });
@@ -111,7 +129,6 @@ describe('/books', () => {
     
             expect(response.status).to.equal(200);
             expect(response.body.title).to.equal(book.title);
-            expect(response.body.author).to.equal(book.author);
 
         });
     

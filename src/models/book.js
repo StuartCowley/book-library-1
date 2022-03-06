@@ -3,30 +3,17 @@ module.exports = (connection, DataTypes) => {
 
     title: {
       type: DataTypes.STRING,
+      allowNull: false,
       validate: {
-        isIn: [[
-          'Guide to Backend', 
-          'Full of Toblerone', 
-          'Big Book of Cats', 
-          'REST Principles'
-        ]]
+        notEmpty: {
+          args: [true],
+          msg: "A title is required"
+        },
+        notNull: {
+          args: [true],
+          msg: "A title is required"
+        }
       }
-    },
-
-    author: {
-      type: DataTypes.STRING,
-      validate: {
-        isIn: [[
-          'Dan Hembery', 
-          'Disc0des', 
-          'Nyancat', 
-          'Manchester Codes'
-        ]]
-      }
-    },
-
-    genre: {
-      type: DataTypes.STRING,
     },
 
     ISBN: {

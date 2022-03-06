@@ -1,4 +1,4 @@
-const { Book, Reader } = require('../models');
+const { Book, Reader, Genre, Author } = require('../models');
 
 const get404Error = (model) => ({ error: `The ${model} could not be found.` });
 
@@ -6,6 +6,8 @@ const getModel = (model) => {
   const models = {
     book: Book,
     reader: Reader,
+    genre: Genre,
+    author: Author
   };
 
   return models[model];
@@ -17,6 +19,14 @@ const removePassword = (obj) => {
   }
 
   return obj;
+};
+
+const getAllBooks = (res, model) => {
+  const Model = getModel(model);
+
+  return Model.findAll({ include: Book }).then((items) => {
+    res.status(200).json(items);
+  });
 };
 
 const createItem = async (res, model, item) => {
@@ -63,14 +73,15 @@ const updateItem = async (res, model, item, id) => {
 const getItemById = async (res, model, id) => {
   const Model = getModel(model);
 
-  const item = await Model.findByPk(id);
+  return Model.findByPk(id, { includes: Genre}).then((item) => {
 
-  if (!item) {
-    res.status(404).json(get404Error(model));
-  } else {
-    const itemWithoutPassword = removePassword(item.dataValues);
-    res.status(200).json(itemWithoutPassword);
-  }
+    if (!item) {
+      res.status(404).json(get404Error(model));
+    } else {
+      const itemWithoutPassword = removePassword(item.dataValues);
+      res.status(200).json(itemWithoutPassword);
+    }
+  });
 };
 
 const deleteItem = async (res, model, id) => {
@@ -91,4 +102,5 @@ module.exports = {
   updateItem,
   getItemById,
   deleteItem,
+  getAllBooks
 };
